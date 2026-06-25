@@ -1,14 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:unitrade/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/presentation/providers/campus_mart_provider.dart';
 
-class ChatDetailScreen extends StatelessWidget {
-  const ChatDetailScreen({super.key, required this.conversation});
+class ChatDetailScreen extends StatefulWidget {
+  const ChatDetailScreen({super.key, required this.conversationId});
 
-  final ConversationItem conversation;
+  final String conversationId;
+
+  @override
+  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+}
+
+class _ChatDetailScreenState extends State<ChatDetailScreen> {
+  late final TextEditingController _messageController;
+  late final ScrollController _scrollController;
+  late final CampusMartProvider _campusMartProvider;
+  int _lastSeenMessageCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageController = TextEditingController();
+    _scrollController = ScrollController();
+    _campusMartProvider = context.read<CampusMartProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      _campusMartProvider.openConversation(widget.conversationId);
+    });
+  }
+
+  @override
+  void dispose() {
+    _campusMartProvider.closeConversation(widget.conversationId);
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final conversation = context.select<CampusMartProvider, ConversationItem?>(
+      (provider) => provider.getConversationById(widget.conversationId),
+    );
+
+    if (conversation == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chat')),
+        body: const Center(
+          child: Text('This conversation is no longer available.'),
+        ),
+      );
+    }
+
+    if (_lastSeenMessageCount != conversation.messages.length) {
+      _lastSeenMessageCount = conversation.messages.length;
+      _scrollToBottom();
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -59,6 +112,7 @@ class ChatDetailScreen extends StatelessWidget {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               itemCount: conversation.messages.length,
               itemBuilder: (context, index) {
@@ -119,6 +173,9 @@ class ChatDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextField(
+                      controller: _messageController,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendMessage(context),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         filled: true,
@@ -135,14 +192,15 @@ class ChatDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 48,
-                    height: 48,
+                  DecoratedBox(
                     decoration: const BoxDecoration(
                       color: Color(0xFF2563EB),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.send_rounded, color: Colors.white),
+                    child: IconButton(
+                      onPressed: () => _sendMessage(context),
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -151,5 +209,34 @@ class ChatDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _sendMessage(BuildContext context) {
+    final typedMessage = _messageController.text.trim();
+
+    if (typedMessage.isEmpty) {
+      return;
+    }
+
+    context.read<CampusMartProvider>().sendMessage(
+      widget.conversationId,
+      typedMessage,
+    );
+    _messageController.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) {
+        return;
+      }
+
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
   }
 }

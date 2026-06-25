@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:unitrade/features/auth/presentation/screens/signup_screen.dart';
+import 'package:unilane/features/auth/data/app_launch_repository.dart';
+import 'package:unilane/features/auth/presentation/screens/signup_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -37,7 +39,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   bool get _isLastPage => _currentPage == _items.length - 1;
 
-  void _goToSignup() {
+  Future<void> _goToSignup() async {
+    await context.read<AppLaunchRepository>().markOnboardingSeen();
+
+    if (!mounted) {
+      return;
+    }
+
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (context) => const SignupScreen()));
@@ -116,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: _goToSignup,
+                onPressed: () => _goToSignup(),
                 child: const Text(
                   'Skip',
                   style: TextStyle(

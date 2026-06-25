@@ -46,6 +46,9 @@ class _AppSearchFieldState extends State<AppSearchField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
+      textInputAction: TextInputAction.search,
+      keyboardType: TextInputType.text,
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       onChanged: widget.onChanged,
       decoration: InputDecoration(
         hintText: widget.hintText,

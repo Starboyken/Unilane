@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:unitrade/features/auth/presentation/screens/login_screen.dart';
-import 'package:unitrade/features/main/presentation/providers/campus_mart_provider.dart';
-import 'package:unitrade/features/main/presentation/screens/main_shell_screen.dart';
+import 'package:unilane/features/auth/models/signup_method.dart';
+import 'package:unilane/features/auth/presentation/providers/auth_provider.dart';
+import 'package:unilane/features/auth/presentation/screens/login_screen.dart';
+import 'package:unilane/features/main/presentation/screens/main_shell_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -22,7 +23,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool isPasswordHidden = true;
   bool isConfirmPasswordHidden = true;
-  bool isLoading = false;
 
   void togglePasswordVisibility() {
     setState(() {
@@ -36,24 +36,33 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
-  void signUpUser() {
+  Future<void> signUpUser() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    final auth = context.read<AuthProvider>();
+    final user = await auth.signUp(
+      displayName: nameController.text.trim(),
+      identifier: contactController.text.trim(),
+      password: passwordController.text,
+    );
 
-    Future<void>.delayed(const Duration(seconds: 2), () {
+    if (!mounted || user == null) {
       if (!mounted) return;
 
-      setState(() {
-        isLoading = false;
-      });
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (context) => const MainShellScreen()),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            auth.errorMessage ?? 'Unable to create your account right now.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
-    });
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (context) => const MainShellScreen()),
+    );
   }
 
   @override
@@ -67,8 +76,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedMethod = context.watch<CampusMartProvider>().signupMethod;
-    final isEmailSelected = selectedMethod == SignupMethod.email;
+    final auth = context.watch<AuthProvider>();
+    final supportsPhoneAuth = auth.supportsPhoneAuth;
+    final selectedMethod = auth.signupMethod;
+    final effectiveMethod = supportsPhoneAuth
+        ? selectedMethod
+        : SignupMethod.email;
+    final isEmailSelected = effectiveMethod == SignupMethod.email;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -124,9 +138,20 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 32),
                 _SignupMethodSwitcher(
-                  selectedMethod: selectedMethod,
+                  selectedMethod: effectiveMethod,
+                  supportsPhoneAuth: supportsPhoneAuth,
                   onMethodSelected: (method) {
-                    context.read<CampusMartProvider>().setSignupMethod(method);
+                    if (!supportsPhoneAuth && method == SignupMethod.phone) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Phone verification is coming soon.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+
+                    context.read<AuthProvider>().setSignupMethod(method);
                     contactController.clear();
                   },
                 ),
@@ -237,13 +262,13 @@ class _SignupScreenState extends State<SignupScreen> {
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: isLoading ? null : signUpUser,
+                    onPressed: auth.isBusy ? null : signUpUser,
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: isLoading
+                    child: auth.isBusy
                         ? const SizedBox(
                             width: 22,
                             height: 22,
@@ -323,10 +348,12 @@ class _SignupScreenState extends State<SignupScreen> {
 class _SignupMethodSwitcher extends StatelessWidget {
   const _SignupMethodSwitcher({
     required this.selectedMethod,
+    required this.supportsPhoneAuth,
     required this.onMethodSelected,
   });
 
   final SignupMethod selectedMethod;
+  final bool supportsPhoneAuth;
   final ValueChanged<SignupMethod> onMethodSelected;
 
   @override
@@ -343,6 +370,7 @@ class _SignupMethodSwitcher extends StatelessWidget {
             child: _MethodOption(
               label: 'Email',
               isSelected: selectedMethod == SignupMethod.email,
+              isEnabled: true,
               onTap: () => onMethodSelected(SignupMethod.email),
             ),
           ),
@@ -350,6 +378,7 @@ class _SignupMethodSwitcher extends StatelessWidget {
             child: _MethodOption(
               label: 'Phone',
               isSelected: selectedMethod == SignupMethod.phone,
+              isEnabled: supportsPhoneAuth,
               onTap: () => onMethodSelected(SignupMethod.phone),
             ),
           ),
@@ -363,17 +392,19 @@ class _MethodOption extends StatelessWidget {
   const _MethodOption({
     required this.label,
     required this.isSelected,
+    required this.isEnabled,
     required this.onTap,
   });
 
   final String label;
   final bool isSelected;
+  final bool isEnabled;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isEnabled ? onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -394,7 +425,9 @@ class _MethodOption extends StatelessWidget {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: const Color(0xFF111827),
+            color: isEnabled
+                ? const Color(0xFF111827)
+                : const Color(0xFF9CA3AF),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),

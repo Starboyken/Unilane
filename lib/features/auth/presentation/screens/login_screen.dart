@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:unitrade/features/auth/presentation/screens/signup_screen.dart';
-import 'package:unitrade/features/main/presentation/screens/main_shell_screen.dart';
+import 'package:unilane/features/auth/presentation/screens/signup_screen.dart';
+import 'package:unilane/features/auth/presentation/providers/auth_provider.dart';
+import 'package:unilane/features/main/presentation/screens/main_shell_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   bool isPasswordHidden = true;
-  bool isLoading = false;
 
   void togglePasswordVisibility() {
     setState(() {
@@ -24,24 +25,32 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void loginUser() {
+  Future<void> loginUser() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    final auth = context.read<AuthProvider>();
+    final user = await auth.signIn(
+      identifier: contactController.text.trim(),
+      password: passwordController.text,
+    );
 
-    Future<void>.delayed(const Duration(seconds: 2), () {
+    if (!mounted || user == null) {
       if (!mounted) return;
 
-      setState(() {
-        isLoading = false;
-      });
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (context) => const MainShellScreen()),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            auth.errorMessage ?? 'Unable to log in right now. Try again.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
-    });
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (context) => const MainShellScreen()),
+    );
   }
 
   @override
@@ -53,6 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final supportsPhoneAuth = auth.supportsPhoneAuth;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -104,18 +116,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 15, color: Color(0xFF6B7280)),
                 ),
                 const SizedBox(height: 32),
-                const _AuthFieldLabel('Email or Phone'),
+                _AuthFieldLabel(
+                  supportsPhoneAuth ? 'Email or Phone' : 'Email Address',
+                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: contactController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: _buildDecoration(
-                    hintText: 'Enter email or phone number',
+                    hintText: supportsPhoneAuth
+                        ? 'Enter email or phone number'
+                        : 'Enter email address',
                     prefixIcon: Icons.mail_outline_rounded,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your email or phone number';
+                      return supportsPhoneAuth
+                          ? 'Please enter your email or phone number'
+                          : 'Please enter your email address';
+                    }
+                    if (!supportsPhoneAuth && !value.contains('@')) {
+                      return 'Please enter a valid email address';
                     }
                     return null;
                   },
@@ -157,13 +178,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: isLoading ? null : loginUser,
+                    onPressed: auth.isBusy ? null : loginUser,
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: isLoading
+                    child: auth.isBusy
                         ? const SizedBox(
                             width: 22,
                             height: 22,

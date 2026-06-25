@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:unitrade/core/widgets/app_search_field.dart';
-import 'package:unitrade/features/main/data/campus_mart_mock_data.dart';
-import 'package:unitrade/features/main/models/campus_mart_models.dart';
-import 'package:unitrade/features/main/presentation/providers/campus_mart_provider.dart';
-import 'package:unitrade/features/main/presentation/screens/product_detail_screen.dart';
-import 'package:unitrade/features/main/presentation/widgets/shared_widgets.dart';
+import 'package:unilane/core/widgets/app_search_field.dart';
+import 'package:unilane/features/main/data/campus_mart_mock_data.dart';
+import 'package:unilane/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/presentation/providers/campus_mart_provider.dart';
+import 'package:unilane/features/main/presentation/screens/product_detail_screen.dart';
+import 'package:unilane/features/main/presentation/widgets/shared_widgets.dart';
 
 class MarketplaceTab extends StatelessWidget {
   const MarketplaceTab({super.key, required this.onBack});
@@ -18,7 +18,7 @@ class MarketplaceTab extends StatelessWidget {
     final provider = context.watch<CampusMartProvider>();
     final selectedCategory = provider.selectedMarketplaceCategory;
     final query = provider.marketplaceSearchQuery.trim().toLowerCase();
-    final filteredItems = marketplaceListings.where((item) {
+    final filteredItems = provider.marketplaceListings.where((item) {
       final matchesCategory =
           selectedCategory == 'All' || item.category == selectedCategory;
       final matchesQuery =

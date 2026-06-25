@@ -1,0 +1,1 @@
+enum SignupMethod { email, phone }

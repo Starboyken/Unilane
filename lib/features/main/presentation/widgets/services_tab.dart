@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:unitrade/core/widgets/app_search_field.dart';
-import 'package:unitrade/features/main/data/campus_mart_mock_data.dart';
-import 'package:unitrade/features/main/presentation/providers/campus_mart_provider.dart';
-import 'package:unitrade/features/main/presentation/widgets/shared_widgets.dart';
+import 'package:unilane/core/widgets/app_search_field.dart';
+import 'package:unilane/features/main/data/campus_mart_mock_data.dart';
+import 'package:unilane/features/main/presentation/providers/campus_mart_provider.dart';
+import 'package:unilane/features/main/presentation/screens/service_detail_screen.dart';
+import 'package:unilane/features/main/presentation/widgets/shared_widgets.dart';
 
 class ServicesTab extends StatelessWidget {
   const ServicesTab({super.key});
@@ -74,7 +75,14 @@ class ServicesTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const SquareActionButton(icon: Icons.tune_rounded),
+              SquareActionButton(
+                icon: Icons.tune_rounded,
+                onTap: () {
+                  context.read<CampusMartProvider>().openServices(
+                    category: 'All',
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -88,7 +96,17 @@ class ServicesTab extends StatelessWidget {
             ...filteredItems.map(
               (service) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: ServiceCard(service: service),
+                child: ServiceCard(
+                  service: service,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            ServiceDetailScreen(service: service),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
         ],

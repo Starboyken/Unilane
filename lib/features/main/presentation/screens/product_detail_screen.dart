@@ -1,13 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:unitrade/features/main/models/campus_mart_models.dart';
-import 'package:unitrade/features/main/presentation/screens/chat_detail_screen.dart';
-import 'package:unitrade/features/main/presentation/widgets/shared_widgets.dart';
+import 'package:unilane/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/presentation/providers/campus_mart_provider.dart';
+import 'package:unilane/features/main/presentation/screens/chat_detail_screen.dart';
+import 'package:unilane/features/main/presentation/widgets/shared_widgets.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   const ProductDetailScreen({super.key, required this.listing});
 
   final ListingItem listing;
+
+  bool get _isLodgeListing => listing.category == 'Lodges';
+
+  String get _aboutHeading =>
+      _isLodgeListing ? 'About this stay' : 'About this listing';
+
+  String get _detailsHeading =>
+      _isLodgeListing ? 'Stay details' : 'Quick details';
+
+  String get _infoHeading => _isLodgeListing
+      ? 'Need more information about this stay?'
+      : 'Need more information?';
+
+  String get _messageButtonLabel =>
+      _isLodgeListing ? 'Message Landlord' : 'Message Seller';
+
+  bool get _hasLodgeSpecificDetails =>
+      listing.roomType != null ||
+      listing.rentDuration != null ||
+      listing.utilities != null ||
+      listing.distanceToCampus != null;
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +158,14 @@ class ProductDetailScreen extends StatelessWidget {
                           listing: listing,
                           onMessageSeller: () => _openChat(context),
                         ),
+                        if (_isLodgeListing && listing.isVerifiedSeller) ...[
+                          const SizedBox(height: 14),
+                          const TrustBadge(label: 'Verified landlord'),
+                        ],
                         const SizedBox(height: 24),
-                        const Text(
-                          'About this listing',
-                          style: TextStyle(
+                        Text(
+                          _aboutHeading,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF111827),
@@ -154,9 +181,9 @@ class ProductDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Quick details',
-                          style: TextStyle(
+                        Text(
+                          _detailsHeading,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF111827),
@@ -170,6 +197,38 @@ class ProductDetailScreen extends StatelessWidget {
                           label: 'Condition',
                           value: listing.condition,
                         ),
+                        if (_isLodgeListing && _hasLodgeSpecificDetails) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                            'Lodge specifics',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (listing.roomType != null)
+                            _DetailRow(
+                              label: 'Room type',
+                              value: listing.roomType!,
+                            ),
+                          if (listing.rentDuration != null)
+                            _DetailRow(
+                              label: 'Rent duration',
+                              value: listing.rentDuration!,
+                            ),
+                          if (listing.utilities != null)
+                            _DetailRow(
+                              label: 'Utilities included',
+                              value: listing.utilities!,
+                            ),
+                          if (listing.distanceToCampus != null)
+                            _DetailRow(
+                              label: 'Distance to campus',
+                              value: listing.distanceToCampus!,
+                            ),
+                        ],
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -190,9 +249,12 @@ class ProductDetailScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Need more information?',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                  Text(
+                    _infoHeading,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
@@ -212,7 +274,7 @@ class ProductDetailScreen extends StatelessWidget {
                         ),
                       ),
                       icon: const Icon(Icons.chat_bubble_rounded),
-                      label: const Text('Message Seller'),
+                      label: Text(_messageButtonLabel),
                     ),
                   ),
                 ],
@@ -225,39 +287,32 @@ class ProductDetailScreen extends StatelessWidget {
   }
 
   void _openChat(BuildContext context) {
+    final conversationId = context
+        .read<CampusMartProvider>()
+        .ensureConversation(
+          preferredId: _buildConversationId(listing.sellerName),
+          initials: _buildInitials(listing.sellerName),
+          name: listing.sellerName,
+          initialMessage: _openingMessage,
+        );
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => ChatDetailScreen(
-          conversation: ConversationItem(
-            initials: _buildInitials(listing.sellerName),
-            name: listing.sellerName,
-            lastMessage: _openingMessage,
-            time: 'now',
-            unreadCount: 0,
-            isOnline: true,
-            messages: [
-              ChatMessageItem(text: _openingMessage, time: 'Now', isMine: true),
-            ],
-          ),
-        ),
+        builder: (context) => ChatDetailScreen(conversationId: conversationId),
       ),
     );
   }
 
-  String get _openingMessage =>
-      'Hi, is "${listing.title}" still available on UniLane?';
+  String get _openingMessage => _isLodgeListing
+      ? 'Hi, is "${listing.title}" still available for students on UniLane?'
+      : 'Hi, is "${listing.title}" still available on UniLane?';
 
   String _buildInitials(String name) {
-    final cleaned = name.replaceAll(RegExp(r'[^A-Za-z ]'), ' ').trim();
+    final parts = _normalizedNameParts(name);
 
-    if (cleaned.isEmpty) {
+    if (parts.isEmpty) {
       return 'UL';
     }
-
-    final parts = cleaned
-        .split(RegExp(r'\s+'))
-        .where((part) => part.isNotEmpty)
-        .toList();
 
     if (parts.length == 1) {
       final part = parts.first;
@@ -268,6 +323,29 @@ class ProductDetailScreen extends StatelessWidget {
     }
 
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
+  String _buildConversationId(String name) {
+    final parts = _normalizedNameParts(name);
+
+    if (parts.isEmpty) {
+      return 'unilane-chat';
+    }
+
+    return parts.join('-').toLowerCase();
+  }
+
+  List<String> _normalizedNameParts(String name) {
+    final cleaned = name.replaceAll(RegExp(r'[^A-Za-z ]'), ' ').trim();
+
+    if (cleaned.isEmpty) {
+      return const [];
+    }
+
+    return cleaned
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
   }
 }
 

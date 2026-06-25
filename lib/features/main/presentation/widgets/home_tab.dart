@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:unitrade/core/widgets/app_search_field.dart';
-import 'package:unitrade/features/main/data/campus_mart_mock_data.dart';
-import 'package:unitrade/features/main/models/campus_mart_models.dart';
-import 'package:unitrade/features/main/presentation/providers/campus_mart_provider.dart';
-import 'package:unitrade/features/main/presentation/screens/product_detail_screen.dart';
-import 'package:unitrade/features/main/presentation/widgets/shared_widgets.dart';
+import 'package:unilane/core/widgets/app_search_field.dart';
+import 'package:unilane/features/main/data/campus_mart_mock_data.dart';
+import 'package:unilane/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/presentation/providers/campus_mart_provider.dart';
+import 'package:unilane/features/main/presentation/screens/lodges_screen.dart';
+import 'package:unilane/features/main/presentation/screens/roommates_screen.dart';
+import 'package:unilane/features/main/presentation/screens/product_detail_screen.dart';
+import 'package:unilane/features/main/presentation/widgets/shared_widgets.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key, required this.onOpenNotifications});
@@ -17,10 +19,11 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<CampusMartProvider>();
     final query = provider.homeSearchQuery.trim().toLowerCase();
+    final unreadNotificationCount = provider.unreadNotificationCount;
     final filteredCategories = homeCategories
         .where((item) => item.label.toLowerCase().contains(query))
         .toList();
-    final filteredListings = featuredListings
+    final filteredListings = provider.featuredListings
         .where(
           (item) =>
               item.title.toLowerCase().contains(query) ||
@@ -61,13 +64,17 @@ class HomeTab extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'University of Lagos',
+                      'Student marketplace • lodges • services',
                       style: TextStyle(fontSize: 15, color: Color(0xFF6B7280)),
                     ),
                   ],
                 ),
               ),
-              NotificationButton(onTap: onOpenNotifications),
+              NotificationButton(
+                key: const Key('homeNotificationButton'),
+                onTap: onOpenNotifications,
+                unreadCount: unreadNotificationCount,
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -169,6 +176,22 @@ class HomeTab extends StatelessWidget {
   void _openCategory(BuildContext context, CategoryItem category) {
     final provider = context.read<CampusMartProvider>();
 
+    if (category.label == 'Lodges') {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (context) => const LodgesScreen()),
+      );
+
+      return;
+    }
+
+    if (category.label == 'Roommates') {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (context) => const RoommatesScreen()),
+      );
+
+      return;
+    }
+
     if (category.targetTabIndex == 1) {
       provider.openMarketplace(category: category.targetFilter);
       return;
@@ -186,6 +209,22 @@ class HomeTab extends StatelessWidget {
 
   void _openRecommendation(BuildContext context, RecommendationItem item) {
     final provider = context.read<CampusMartProvider>();
+
+    if (item.title.toLowerCase().contains('stay')) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (context) => const LodgesScreen()),
+      );
+
+      return;
+    }
+
+    if (item.title.toLowerCase().contains('roommate')) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (context) => const RoommatesScreen()),
+      );
+
+      return;
+    }
 
     if (item.targetTabIndex == 1) {
       provider.openMarketplace(category: item.targetFilter);

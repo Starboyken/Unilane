@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:unitrade/features/main/models/campus_mart_models.dart';
+import 'package:unilane/features/main/models/campus_mart_models.dart';
 
 const marketplaceCategories = <String>[
   'All',
@@ -8,6 +8,7 @@ const marketplaceCategories = <String>[
   'Electronics',
   'Furniture',
   'Clothing',
+  'Lodges',
 ];
 
 const servicesCategories = <String>[
@@ -33,6 +34,7 @@ const homeCategories = <CategoryItem>[
     backgroundColor: Color(0xFFE9F8EC),
     iconColor: Color(0xFF4C9B58),
     targetTabIndex: 1,
+    targetFilter: 'Lodges',
   ),
   CategoryItem(
     label: 'Roommates',
@@ -71,7 +73,7 @@ const featuredListings = <ListingItem>[
         'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80',
     title: '2 Bedroom Self-Contained',
     price: 'N350,000/year',
-    location: 'Bariga',
+    location: 'Rumuolumeni',
     category: 'Lodges',
     description:
         'A student-friendly apartment with tiled floors, prepaid meter access, steady water supply, and enough space for two to three students who want a calmer off-campus stay.',
@@ -79,13 +81,18 @@ const featuredListings = <ListingItem>[
     sellerRole: 'Property owner',
     condition: 'Available now',
     postedTime: 'Posted today',
+    roomType: 'Self-contained',
+    rentDuration: 'Per year',
+    utilities: 'Water, Power',
+    distanceToCampus: '12 mins from campus',
+    isVerifiedSeller: true,
   ),
   ListingItem(
     imageUrl:
         'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80',
     title: 'iPhone 12 Pro Max 256GB',
     price: 'N320,000',
-    location: 'Sabo',
+    location: 'Port Harcourt',
     category: 'Electronics',
     description:
         'Neatly used iPhone 12 Pro Max with strong battery health, clean screen, Face ID working, and charger included. Great option for students who need a reliable phone for school and business.',
@@ -100,10 +107,50 @@ const featuredListings = <ListingItem>[
 const marketplaceListings = <ListingItem>[
   ListingItem(
     imageUrl:
+        'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80',
+    title: '2 Bedroom Self-Contained',
+    price: 'N350,000/year',
+    location: 'Rumuolumeni',
+    category: 'Lodges',
+    description:
+        'A student-friendly apartment with tiled floors, prepaid meter access, steady water supply, and enough space for two to three students who want a calmer off-campus stay.',
+    sellerName: 'Mr. Balogun (Landlord)',
+    sellerRole: 'Property owner',
+    condition: 'Available now',
+    postedTime: 'Posted today',
+    badge: 'Featured Stay',
+    roomType: 'Self-contained',
+    rentDuration: 'Per year',
+    utilities: 'Water, Power',
+    distanceToCampus: '12 mins from campus',
+    isVerifiedSeller: true,
+  ),
+  ListingItem(
+    imageUrl:
+        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
+    title: 'Mini Flat Close to School Gate',
+    price: 'N220,000/semester',
+    location: 'Rumuolumeni',
+    category: 'Lodges',
+    description:
+        'A neat mini flat for students who want a bit more privacy. Comes with steady water, a small kitchen space, and quick access to the school gate.',
+    sellerName: 'Mrs. Aina',
+    sellerRole: 'Landlady',
+    condition: 'Available now',
+    postedTime: 'Posted 6 hours ago',
+    badge: 'New Stay',
+    roomType: 'Mini flat',
+    rentDuration: 'Per semester',
+    utilities: 'Water, Power',
+    distanceToCampus: '6 mins from campus',
+    isVerifiedSeller: true,
+  ),
+  ListingItem(
+    imageUrl:
         'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
     title: 'Leather Backpack - Student Edition',
     price: 'N12,000',
-    location: 'Yaba Campus',
+    location: 'Campus',
     category: 'Books',
     description:
         'A durable backpack with a padded laptop sleeve, side bottle pockets, and extra room for notebooks and chargers. Clean interior and still in good shape for daily campus use.',
@@ -118,7 +165,7 @@ const marketplaceListings = <ListingItem>[
         'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=900&q=80',
     title: 'Used Textbooks Bundle (5 books)',
     price: 'N15,000',
-    location: 'Akoka',
+    location: 'Rumuolumeni',
     category: 'Books',
     description:
         'A five-book bundle for general science and introductory engineering courses. The pages are complete, the notes inside are light, and the set is useful if you want to save on new textbooks.',
@@ -133,7 +180,7 @@ const marketplaceListings = <ListingItem>[
         'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=900&q=80',
     title: 'Smart Watch Series 6',
     price: 'N28,000',
-    location: 'Hostel C',
+    location: 'Main Gate',
     category: 'Electronics',
     description:
         'Smart watch with fitness tracking, notifications, and a charger included. It holds charge well and pairs quickly with most recent Android and iPhone devices.',
@@ -147,7 +194,7 @@ const marketplaceListings = <ListingItem>[
         'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80',
     title: 'Casual Hoodie - Medium',
     price: 'N9,500',
-    location: 'Faculty Road',
+    location: 'Port Harcourt',
     category: 'Clothing',
     description:
         'Soft unisex hoodie in medium size with a relaxed fit for classes and cool evenings. The stitching is clean, the fabric still feels thick, and it has only been worn a few times.',
@@ -161,7 +208,7 @@ const marketplaceListings = <ListingItem>[
         'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
     title: 'Study Desk and Chair Set',
     price: 'N45,000',
-    location: 'Akoka Hostel',
+    location: 'Rumuolumeni Hostel',
     category: 'Furniture',
     description:
         'A compact desk and chair set that fits well in most hostel rooms. The table top is wide enough for a laptop and reading lamp, and the chair remains sturdy for long study sessions.',
@@ -188,6 +235,51 @@ const recommendationItems = <RecommendationItem>[
     backgroundColor: Color(0xFFF2EAFE),
     iconColor: Color(0xFF7C3AED),
     targetTabIndex: 3,
+  ),
+];
+
+const roommateProfiles = <RoommateProfileItem>[
+  RoommateProfileItem(
+    id: 'toyin-adekoya',
+    initials: 'TA',
+    name: 'Toyin Adekoya',
+    level: '300-level',
+    area: 'Rumuolumeni',
+    budget: 'Up to N180k/year',
+    moveIn: 'August',
+    genderPreference: 'Female roommate',
+    interests: ['Quiet study', 'Clean space', 'Cooking'],
+    about:
+        'I am looking for a calm and respectful roommate. I spend most evenings studying, and I like a clean room with simple routines.',
+    isVerifiedStudent: true,
+  ),
+  RoommateProfileItem(
+    id: 'yusuf-bello',
+    initials: 'YB',
+    name: 'Yusuf Bello',
+    level: 'Final year',
+    area: 'Port Harcourt',
+    budget: 'Up to N150k/year',
+    moveIn: 'September',
+    genderPreference: 'Male roommate',
+    interests: ['Football', 'Late nights', 'Tech'],
+    about:
+        'Easy-going student looking for a serious roommate near campus. I like shared bills, clear communication, and a simple room setup.',
+    isVerifiedStudent: true,
+  ),
+  RoommateProfileItem(
+    id: 'chioma-ike',
+    initials: 'CI',
+    name: 'Chioma Ike',
+    level: '200-level',
+    area: 'Rumuolumeni',
+    budget: 'Up to N200k/year',
+    moveIn: 'Immediate',
+    genderPreference: 'Any student roommate',
+    interests: ['Movies', 'Fitness', 'Reading'],
+    about:
+        'I want a responsible roommate who is neat and open to planning the room together. I am okay with quiet study time and shared chores.',
+    isVerifiedStudent: false,
   ),
 ];
 
@@ -232,6 +324,7 @@ const serviceItems = <ServiceItem>[
 
 const conversations = <ConversationItem>[
   ConversationItem(
+    id: 'adewale-ogunleye',
     initials: 'AO',
     name: 'Adewale Ogunleye',
     lastMessage: 'Is the laptop still available?',
@@ -256,6 +349,7 @@ const conversations = <ConversationItem>[
     ],
   ),
   ConversationItem(
+    id: 'sarah-johnson',
     initials: 'SJ',
     name: 'Sarah Johnson',
     lastMessage: 'Thanks for the quick response!',
@@ -280,6 +374,7 @@ const conversations = <ConversationItem>[
     ],
   ),
   ConversationItem(
+    id: 'mr-balogun-landlord',
     initials: 'MB',
     name: 'Mr. Balogun (Landlord)',
     lastMessage: 'You can come view the apartment tomorrow',
@@ -307,27 +402,39 @@ const conversations = <ConversationItem>[
 
 const notificationItems = <NotificationItem>[
   NotificationItem(
+    id: 'message-macbook',
     icon: Icons.chat_bubble_outline_rounded,
-    title: 'Adewale sent a message about your MacBook listing',
+    title: 'Adewale replied about your MacBook listing',
     time: '5 min ago',
     isUnread: true,
+    destinationType: NotificationDestinationType.conversation,
+    destinationId: 'adewale-ogunleye',
   ),
   NotificationItem(
+    id: 'saved-listing',
     icon: Icons.favorite_border_rounded,
-    title: 'Someone saved your listing on UniLane',
+    title: 'Someone saved your Smart Watch Series 6 listing',
     time: '1 hour ago',
     isUnread: true,
+    destinationType: NotificationDestinationType.listing,
+    destinationId: 'smart-watch-series-6',
   ),
   NotificationItem(
+    id: 'price-drop',
     icon: Icons.sell_outlined,
-    title: 'Price drop alert: iPhone 12 Pro is now N280,000',
+    title: 'Price drop alert: iPhone 12 Pro Max 256GB is now N280,000',
     time: '3 hours ago',
     isUnread: false,
+    destinationType: NotificationDestinationType.listing,
+    destinationId: 'iphone-12-pro-max-256gb',
   ),
   NotificationItem(
+    id: 'new-book-listing',
     icon: Icons.notifications_none_rounded,
-    title: 'New book listing: Engineering Mathematics',
+    title: 'New book listing: Used Textbooks Bundle (5 books)',
     time: 'Yesterday',
     isUnread: false,
+    destinationType: NotificationDestinationType.listing,
+    destinationId: 'used-textbooks-bundle-5-books',
   ),
 ];
